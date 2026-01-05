@@ -1182,7 +1182,7 @@
             'victims': ['id', 'case_id', 'citizen_id', 'injury_type', 'status'],
             'suspects': ['id', 'case_id', 'citizen_id', 'motive', 'alibi'],
             'witnesses': ['id', 'case_id', 'citizen_id', 'testimony', 'reliability'],
-            'evidence': ['id', 'case_id', 'evidence_type', 'description', 'location_found', 'analysis_result'],
+            'evidence': ['id', 'case_id', 'evidence_type', 'description', 'location_found', 'analysis_result', 'linked_citizen_id'],
             'relationships': ['id', 'citizen1_id', 'citizen2_id', 'relationship_type'],
             'criminal_records': ['id', 'citizen_id', 'crime_type', 'conviction_date', 'sentence'],
             'phone_calls': ['id', 'caller_id', 'receiver_id', 'call_date', 'duration_seconds'],
@@ -1336,7 +1336,7 @@
                 </div>
             `;
 
-            document.getElementById('sql-editor').value = `-- Vụ án #${id}: ${caseData.title}\n-- Hãy dùng SQL để tìm hung thủ!\n\nSELECT * FROM suspects WHERE case_id = ${id};`;
+            document.getElementById('sql-editor').value = `-- Vụ án #${id}: ${caseData.title}\n-- Hãy dùng SQL để tìm hung thủ!\n\n-- Bắt đầu với nạn nhân:\nSELECT c.name, v.injury_type, v.status \nFROM victims v \nJOIN citizens c ON v.citizen_id = c.id \nWHERE v.case_id = ${id};`;
 
             // Mobile: switch to investigate tab
             if (window.innerWidth <= 768) {
