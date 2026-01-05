@@ -1177,10 +1177,10 @@
 
         // Database schema
         const schemaInfo = {
-            'cases': ['id', 'case_number', 'case_type', 'title', 'description', 'location', 'district_id', 'crime_date', 'status', 'difficulty', 'solution_hint', 'culprit_id'],
+            'cases': ['id', 'case_number', 'case_type', 'title', 'description', 'location', 'district_id', 'crime_date', 'status', 'difficulty', 'solution_hint'],
             'citizens': ['id', 'name', 'gender', 'birth_date', 'address', 'district_id', 'occupation', 'phone', 'height', 'weight', 'blood_type', 'income_level'],
             'victims': ['id', 'case_id', 'citizen_id', 'injury_type', 'status'],
-            'suspects': ['id', 'case_id', 'citizen_id', 'motive', 'alibi', 'is_culprit'],
+            'suspects': ['id', 'case_id', 'citizen_id', 'motive', 'alibi'],
             'witnesses': ['id', 'case_id', 'citizen_id', 'testimony', 'reliability'],
             'evidence': ['id', 'case_id', 'evidence_type', 'description', 'location_found', 'analysis_result'],
             'relationships': ['id', 'citizen1_id', 'citizen2_id', 'relationship_type'],
@@ -1227,12 +1227,12 @@
 
         // Load cases
         function loadCases() {
-            const results = db.exec("SELECT id, case_number, title, case_type, difficulty, culprit_id FROM cases ORDER BY id");
+            const results = db.exec("SELECT id, case_number, title, case_type, difficulty FROM cases ORDER BY id");
             if (results.length === 0) return;
 
             allCases = results[0].values.map(c => ({
-                id: c[0], case_number: c[1], title: c[2], 
-                case_type: c[3], difficulty: c[4], culprit_id: c[5]
+                id: c[0], case_number: c[1], title: c[2],
+                case_type: c[3], difficulty: c[4]
             }));
 
             renderCaseList();
@@ -1273,8 +1273,8 @@
             const activeItem = document.querySelector(`.case-item[data-id="${id}"]`);
             if (activeItem) activeItem.classList.add('active');
 
-            // Get culprit name
-            const culpritResult = db.exec(`SELECT name FROM citizens WHERE id = ${caseData.culprit_id}`);
+            // Get culprit name from answers table (hidden)
+            const culpritResult = db.exec(`SELECT culprit_name FROM answers WHERE case_id = ${id}`);
             const culpritName = culpritResult.length > 0 ? culpritResult[0].values[0][0] : 'Unknown';
 
             document.getElementById('case-detail').innerHTML = `
@@ -1331,7 +1331,6 @@
 
                 <div class="quick-actions">
                     <span class="quick-query" onclick="runQuickQuery('SELECT c.name, v.injury_type, v.status FROM victims v JOIN citizens c ON v.citizen_id = c.id WHERE v.case_id = ${id}')">👤 Nạn nhân</span>
-                    <span class="quick-query" onclick="runQuickQuery('SELECT c.name, c.occupation, s.motive, s.alibi FROM suspects s JOIN citizens c ON s.citizen_id = c.id WHERE s.case_id = ${id}')">🕵️ Nghi phạm</span>
                     <span class="quick-query" onclick="runQuickQuery('SELECT c.name, w.testimony, w.reliability FROM witnesses w JOIN citizens c ON w.citizen_id = c.id WHERE w.case_id = ${id}')">👁️ Nhân chứng</span>
                     <span class="quick-query" onclick="runQuickQuery('SELECT evidence_type, description, analysis_result FROM evidence WHERE case_id = ${id}')">🔬 Bằng chứng</span>
                 </div>
@@ -1358,8 +1357,8 @@
                 return;
             }
 
-            // Get correct answer
-            const culpritResult = db.exec(`SELECT name FROM citizens WHERE id = ${currentCase.culprit_id}`);
+            // Get correct answer from answers table
+            const culpritResult = db.exec(`SELECT culprit_name FROM answers WHERE case_id = ${currentCase.id}`);
             if (culpritResult.length === 0) return;
 
             const correctName = culpritResult[0].values[0][0];
